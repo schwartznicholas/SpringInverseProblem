@@ -35,34 +35,47 @@
 	Conclusion: A proof of concept was given, but a much more complex model may still yet not be possible with this approach.
 
 	\section*{Background}
+	\subsection*{What is a Multilayer Perceptron?}
+	A multilayer perceptron (MLP) solves the XOR problem. The XOR problem is that given four points there is a set that is not linearly separable (DeepAI). The MLP is able to classify such a set of data and therefore is able to do much more complex regression and classification tasks.
+	
+	A MLP works through a feed forward architecture where the input layer is fed through each of the hidden layers. Each hidden layer has a given activation function and weights associated with it. The weights of the hidden layers are what is trained as a model undergoes training on a dataset. The model learns what is "good" and what is "bad" through the loss function. A loss function for regression can be mean squared error. After a model runs through the data once and calculates the loss, it adjusts the weights of the hidden layer accordingly.
+	\subsection*{The Differential Equation}
 
-	The one dimensional spring has multiple cases, over, under, and critical damping. When analyzing the system being able to predict the kind of damping is important. They are predicted from the relationship between $b^2$ and $4mk$ Below are the solutions:
+	For damped harmonic motion the differential equation will be:
+	\begin{equation}
+	0 = m\ddot{x}+ b\dot{x} + kx
+	\end{equation}
+	This is the equation that will be passed to odeint from Scipy in order to generate the data. Since m scales the data due to affecting both terms equally, it will be held at a constant value of 1. This won't have a large impact on how the model performs for new real world data because the data should be normalized like the data being trained here will be.
 
-	\subsection*{Case 1: Critical Damping}
+
+	The one dimensional spring has multiple cases, over, under, and critical damping. When analyzing the system being able to predict the kind of damping is important. They are predicted from the relationship between $b^2$ and $4mk$ Below are the solutions, these were checked with Taylor, J. R. (2005):
+
+	\subsubsection*{Case 1: Critical Damping}
 	$b^2 = 4mk$
 
 	Critical Damping has the general solution as follows:
-
-	$$ x(t) = C_1e^{\lambda_1t} +C_2te^{\lambda_1t} $$
+	\begin{equation}
+	x(t) = C_1e^{\lambda_1t} +C_2te^{\lambda_1t} 
+	\end{equation}
 
 	$$ \text{with}\hspace{2mm}\lambda_1 = -\dfrac{b}{2m}$$
 
-	\subsection*{Case 2: Over Damping}
+	\subsubsection*{Case 2: Over Damping}
 	$b^2 > 4mk$
 
 	Over Damping has the general solution as follows:
-
-	$$ x(t) =  C_1e^{\lambda_1t} +C_2e^{\lambda_2t} $$
-
+	\begin{equation}
+	 x(t) =  C_1e^{\lambda_1t} +C_2e^{\lambda_2t} 
+	\end{equation}
 	$$ \text{with}\hspace{2mm} \lambda_1 = -\dfrac{-b + \sqrt{b^2-4mk}}{2m}, \hspace{2mm} \lambda_2 = -\dfrac{-b - \sqrt{b^2-4mk}}{2m} $$
 
-	\subsection*{Case 3: Under Damping}
+	\subsubsection*{Case 3: Under Damping}
 	$b^2 < 4mk$
 
 	Under Damping has the general solution as follows:
-
-	$$x(t) = C_1e^{\alpha \hspace{1mm} t}\cos(\beta \hspace{1mm} t)+C_2e^{\alpha \hspace{1mm} t}\sin(\beta \hspace{1mm} t)$$
-
+	\begin{equation}
+	x(t) = C_1e^{\alpha \hspace{1mm} t}\cos(\beta \hspace{1mm} t)+C_2e^{\alpha \hspace{1mm} t}\sin(\beta \hspace{1mm} t)
+	\end{equation}
 	$$ \text{with}\hspace{2mm} \alpha = -\dfrac{b}{2m}, \hspace{2mm} \beta = \dfrac{\sqrt{4mk-b^2}}{2m}$$
 
 
@@ -88,18 +101,14 @@
 		\includegraphics[scale=0.400]{data_example.png}
 		\centering
 	\end{figure}
+	\begin{center}
+		\textbf{\scriptsize Four randomly selected sets of data taken from the data set; see Appendix for the code that generated this plot.}
+	\end{center}
 
 
 	The above shows that there are a varied amount of behaviors in the data set, in the appendix you can run the code used to generate this plot $(graph_random_data())$ and see the varied behaviors in the dataset. Importantly, the data created has bias because of the constrained k and b values with an assumed m value of one. The m value is not as impactful because it functions as a scaling of the dataset, and the input data is normalized before being input into the model regardless. Therefore, assuming the real world data being predicted is within the no damping to heavy damping cases with any mass it should be able to be estimated when considering the data being normalized.
 
-	\subsection*{The Differential Equation}
-
-	For damped harmonic motion the differential equation will be:
-
-	$$ 0 = m\ddot{x}+ b\dot{x} + kx$$
-
-	This is the equation that will be passed to odeint from Scipy in order to generate the data. Since m scales the data due to affecting both terms equally, it will be held at a constant value of 1. This won't have a large impact on how the model performs for new real world data because the data should be normalized like the data being trained here will be.
-
+	
 	\subsection*{Model Selection}
 
 	For this project there will be two candidate models that will be compared using 5 k-fold cross validation. The first will be a standard MLP which will have multiple layers with descending node numbers. The second model will have the same amount of layers as the first, but every layer except the last one will be fully connected layers. These models were chosen for the simplicity due to hardware and time concerns. More models would increase runtime and comparisons by an incredible amount
@@ -150,6 +159,9 @@
 		\includegraphics[scale=0.400]{loss_example.png}
 		\centering
 	\end{figure}
+	\begin{center}
+		\textbf{\scriptsize Example of the loss and validated loss with a basic MLP trained for 10 epochs.}
+	\end{center}
 
 
 	Above the plot shows a sharp decrease in loss and then a slow burn of a decrease in loss afterwards as epochs reach the 100 to 500 range. Due to this, the amount of epochs was capped at 500 due to overfitting concerns.
@@ -164,6 +176,9 @@
 		\includegraphics[scale=0.400]{CV_descending_adam.png}
 		\centering
 	\end{figure}
+	\begin{center}
+		\textbf{\scriptsize The best cross validated performance of the Adam optimizer with the descending model}
+	\end{center}
 
 	The fully connected model with the Adam optimizer performed the best when trained for 500 epochs and is shown below:
 
@@ -171,6 +186,9 @@
 		\includegraphics[scale=0.400]{CV_fullconnected_adam.png}
 		\centering
 	\end{figure}
+	\begin{center}
+		\textbf{\scriptsize The best cross validated performance of the Adam optimizer with the fully connected model}
+	\end{center}
 
 
 	The descending model with the Adamax optimizer performed the best when trained for 500 epochs and is shown below:
@@ -179,6 +197,9 @@
 		\includegraphics[scale=0.400]{CV_descending_adamax.png}
 		\centering
 	\end{figure}
+	\begin{center}
+		\textbf{\scriptsize The best cross validated performance of the Adamax optimizer with the descending model}
+	\end{center}
 
 
 	The fully connected model with the Adamax optimizer performed the best when trained for 500 epochs and is shown below:
@@ -187,6 +208,9 @@
 		\includegraphics[scale=0.400]{CV_fullconnected_adamax.png}
 		\centering
 	\end{figure}
+	\begin{center}
+		\textbf{\scriptsize The best cross validated performance of the Adamax optimizer with the fully connected model}
+	\end{center}
 
 
 	All of these are fairly similar in their great performance in terms of RMSE. They could all be used as the deployment mode, but if a model must be chosen, the Adamax optimizer with the fully connected model would be the one chosen.
@@ -229,11 +253,12 @@ Yuan Yu, and Xiaoqiang Zheng.
 TensorFlow: Large-scale machine learning on heterogeneous systems,
 2015. Software available from tensorflow.org. \newline
 
-Taylor, J. R. (2005). Classical Mechanics. University Science Books. 
+Taylor, J. R. (2005). Classical Mechanics. University Science Books. \newline
 	
+DeepAI. “Multilayer Perceptron.” DeepAI, DeepAI, 17 May 2019, https://deepai.org/machine-learning-glossary-and-terms/multilayer-perceptron. 
 	\section*{Appendix}
 
-	To see the code, see the following Github repo:
+	To see the code, got to the following Github repository:
 
 	https://github.com/schwartznicholas/SpringInverseProblem
 	
